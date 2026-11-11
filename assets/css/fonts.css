@@ -1,0 +1,10 @@
+/* Hallmark · Cobalt · Familjen Grotesk, IBM Plex Sans, JetBrains Mono
+   Self-hosted, latin subset, so the tool works with no network. */
+
+@font-face { font-family: 'Familjen Grotesk'; font-style: normal; font-weight: 500; font-display: swap; src: url('../fonts/FamiljenGrotesk-500.woff2') format('woff2'); }
+@font-face { font-family: 'Familjen Grotesk'; font-style: normal; font-weight: 600; font-display: swap; src: url('../fonts/FamiljenGrotesk-600.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 350; font-display: swap; src: url('../fonts/IBMPlexSans-350.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 400; font-display: swap; src: url('../fonts/IBMPlexSans-400.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 500; font-display: swap; src: url('../fonts/IBMPlexSans-500.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('../fonts/JetBrainsMono-400.woff2') format('woff2'); }
+@font-face { font-family: 'JetBrains Mono'; font-style: normal; font-weight: 500; font-display: swap; src: url('../fonts/JetBrainsMono-500.woff2') format('woff2'); }

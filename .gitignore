@@ -1,0 +1,17 @@
+# dependencies
+node_modules/
+
+# Hallmark's build output: screenshots, the before/after record, the compare page
+.hallmark/shots/
+.hallmark/before/
+.hallmark/before.json
+.hallmark/before.txt
+.hallmark/compare.html
+
+# logs and editor noise
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

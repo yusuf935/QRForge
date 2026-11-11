@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>QRForge, a QR code generator</title>
+<meta name="description" content="Design a QR code with colour, module shape, a logo, a frame and a background, then export it as PNG, SVG, JPG or WEBP. Everything runs in your browser." />
+<meta name="theme-color" content="#f7f9fc" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23f7f9fc'/%3E%3Cpath d='M16 16h26v26H16zM58 16h26v26H58zM16 58h26v26H16z' fill='%231d2a44'/%3E%3Cpath d='M22 22h14v14H22zM64 22h14v14H64zM22 64h14v14H22z' fill='%231d2a44'/%3E%3Cpath d='M58 58h26v8H58zM58 72h8v12h-8zM72 72h12v12H72z' fill='%232f56d8'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="assets/css/style.css" />
+<script>
+/* Set the colour mode before first paint so the page never flashes the wrong one. */
+(function () {
+  try {
+    var saved = localStorage.getItem('qrforge.mode');
+    if (saved) {
+      try { saved = JSON.parse(saved); } catch (e) { /* already a plain string */ }
+      document.documentElement.dataset.mode = saved;
+    }
+  } catch (e) { /* storage blocked, the OS preference stands */ }
+})();
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to the workbench</a>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#/generator" aria-label="QRForge, home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 100 100" focusable="false">
+          <path d="M14 14h28v28H14zM58 14h28v28H58zM14 58h28v28H14z" fill="none" stroke="currentColor" stroke-width="9" />
+          <path d="M58 58h28v9H58zM58 73h9v13h-9zM77 73h9v13h-9z" fill="currentColor" />
+        </svg>
+      </span>
+      <span class="brand-name">QRForge</span>
+    </a>
+
+    <nav class="mainnav" aria-label="Sections">
+      <button class="navbtn is-active" data-view="generator" type="button">Generator</button>
+      <button class="navbtn" data-view="bulk" type="button">Bulk</button>
+      <button class="navbtn" data-view="scan" type="button">Scan</button>
+      <button class="navbtn" data-view="history" type="button">History<span class="nav-count" id="historyCount">0</span></button>
+    </nav>
+
+    <div class="topbar-actions">
+      <button class="icon-btn" id="themeToggle" type="button" title="Switch between light and dark" aria-label="Switch between light and dark">
+        <svg class="ico-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <svg class="ico-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" focusable="false" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <button class="key" id="openApi" type="button">API</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <h1 class="visually-hidden">QRForge, a QR code generator</h1>
+
+  <!-- ================= GENERATOR ================= -->
+  <section class="view is-active" id="view-generator">
+    <div class="workbench">
+      <!-- ---------- CONTROL RAIL ---------- -->
+      <div class="rail surface">
+        <div class="tray" role="tablist" aria-label="Settings sections">
+          <button class="tray-key" role="tab" id="tab-content" data-panel="content" aria-controls="panel-content" aria-selected="true" tabindex="0">Content</button>
+          <button class="tray-key" role="tab" id="tab-design" data-panel="design" aria-controls="panel-design" aria-selected="false" tabindex="-1">Design</button>
+          <button class="tray-key" role="tab" id="tab-media" data-panel="media" aria-controls="panel-media" aria-selected="false" tabindex="-1">Media</button>
+          <button class="tray-key" role="tab" id="tab-frame" data-panel="frame" aria-controls="panel-frame" aria-selected="false" tabindex="-1">Frame</button>
+          <button class="tray-key" role="tab" id="tab-export" data-panel="export" aria-controls="panel-export" aria-selected="false" tabindex="-1">Export</button>
+        </div>
+
+        <div class="rail-body">
+          <!-- CONTENT -->
+          <div class="tabpane is-active" role="tabpanel" id="panel-content" aria-labelledby="tab-content" data-pane="content">
+            <div class="field">
+              <span class="label" id="typeLabel">QR code type</span>
+              <div class="type-tray" id="typeGrid" role="group" aria-labelledby="typeLabel"></div>
+            </div>
+            <div id="contentFields" class="fields"></div>
+          </div>
+
+          <!-- DESIGN -->
+          <div class="tabpane" role="tabpanel" id="panel-design" aria-labelledby="tab-design" data-pane="design">
+            <div class="field">
+              <span class="label">Style presets</span>
+              <div class="preset-grid" id="presetGrid"></div>
+              <button class="key key--quiet key--block" id="resetDesign" type="button">Reset the design to its defaults</button>
+            </div>
+
+            <div class="grid-2">
+              <div class="field">
+                <label class="label" for="sizeInput">Size <output id="sizeOut">512 px</output></label>
+                <input type="range" id="sizeInput" min="128" max="2048" step="8" value="512" />
+              </div>
+              <div class="field">
+                <label class="label" for="ecLevel">Error correction</label>
+                <select id="ecLevel">
+                  <option value="L">L, 7% recovery</option>
+                  <option value="M">M, 15% recovery</option>
+                  <option value="Q" selected>Q, 25% recovery</option>
+                  <option value="H">H, 30% recovery</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="marginInput">Quiet zone <output id="marginOut">4 modules</output></label>
+              <input type="range" id="marginInput" min="0" max="10" step="1" value="4" />
+            </div>
+
+            <div class="field">
+              <span class="label">Module shape</span>
+              <div class="swatch-row" id="dotTypeRow"></div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="dotColor">Dot colour</label>
+              <div class="color-row">
+                <input type="color" id="dotColor" value="#0f172a" />
+                <input type="text" id="dotColorHex" class="hex" value="#0f172a" spellcheck="false" aria-label="Dot colour as hex" />
+                <label class="switch"><input type="checkbox" id="dotGradient" /><span class="track"></span><span class="switch-lbl">Gradient</span></label>
+              </div>
+              <div class="subfields" id="gradientFields" hidden>
+                <div class="grid-2">
+                  <div class="field">
+                    <label class="label" for="gradType">Gradient type</label>
+                    <select id="gradType"><option value="linear">Linear</option><option value="radial">Radial</option></select>
+                  </div>
+                  <div class="field">
+                    <label class="label" for="gradRotation">Rotation <output id="gradRotationOut">45°</output></label>
+                    <input type="range" id="gradRotation" min="0" max="360" step="1" value="45" />
+                  </div>
+                </div>
+                <div class="grid-2">
+                  <div class="field">
+                    <label class="label" for="gradColor1">Gradient start</label>
+                    <input type="color" id="gradColor1" value="#6366f1" />
+                  </div>
+                  <div class="field">
+                    <label class="label" for="gradColor2">Gradient end</label>
+                    <input type="color" id="gradColor2" value="#22d3ee" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <span class="label">Finder patterns</span>
+              <div class="grid-2">
+                <div class="field">
+                  <label class="label" for="cornerSquareType">Corner shape</label>
+                  <select id="cornerSquareType"></select>
+                </div>
+                <div class="field">
+                  <label class="label" for="cornerDotType">Eye shape</label>
+                  <select id="cornerDotType"></select>
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="field">
+                  <label class="label" for="cornerSquareColor">Corner colour</label>
+                  <input type="color" id="cornerSquareColor" value="#0f172a" />
+                </div>
+                <div class="field">
+                  <label class="label" for="cornerDotColor">Eye colour</label>
+                  <input type="color" id="cornerDotColor" value="#0f172a" />
+                </div>
+              </div>
+              <label class="check"><input type="checkbox" id="cornersFollow" checked /> <span>Match the dot colour</span></label>
+            </div>
+
+            <div class="field">
+              <label class="label" for="bgColor">Background</label>
+              <div class="color-row">
+                <input type="color" id="bgColor" value="#ffffff" />
+                <input type="text" id="bgColorHex" class="hex" value="#ffffff" spellcheck="false" aria-label="Background colour as hex" />
+                <label class="switch"><input type="checkbox" id="bgTransparent" /><span class="track"></span><span class="switch-lbl">Transparent</span></label>
+              </div>
+              <div class="grid-2">
+                <div class="field">
+                  <label class="label" for="cardShape">Background shape</label>
+                  <select id="cardShape">
+                    <option value="square">Square</option>
+                    <option value="rounded">Rounded</option>
+                    <option value="circle">Circle</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label class="label" for="bgRound">Corner roundness <output id="bgRoundOut">0%</output></label>
+                  <input type="range" id="bgRound" min="0" max="100" step="1" value="0" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MEDIA -->
+          <div class="tabpane" role="tabpanel" id="panel-media" aria-labelledby="tab-media" data-pane="media">
+            <div class="field">
+              <span class="label">Logo</span>
+              <div class="dropzone" id="logoDrop" tabindex="0" role="button" aria-label="Upload a logo">
+                <input type="file" id="logoInput" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif" hidden />
+                <div class="dz-preview" id="logoPreview" hidden></div>
+                <div class="dz-inner">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5-5 5 5"/><path d="M12 5v12"/></svg>
+                  <p><strong>Drop an image</strong> or click to browse</p>
+                  <small>PNG, JPG, SVG or WEBP, converted to a data URL</small>
+                </div>
+              </div>
+              <button class="key key--quiet key--block" id="logoRemove" type="button" hidden>Remove the logo</button>
+              <div class="subfields" id="logoFields" hidden>
+                <div class="grid-2">
+                  <div class="field">
+                    <label class="label" for="logoSize">Logo size <output id="logoSizeOut">25%</output></label>
+                    <input type="range" id="logoSize" min="5" max="40" step="1" value="25" />
+                  </div>
+                  <div class="field">
+                    <label class="label" for="logoMargin">Logo margin <output id="logoMarginOut">0%</output></label>
+                    <input type="range" id="logoMargin" min="0" max="40" step="1" value="0" />
+                  </div>
+                </div>
+                <div class="field">
+                  <label class="label" for="logoShape">Logo shape</label>
+                  <select id="logoShape"><option value="none">Keep the original</option><option value="rounded">Rounded rectangle</option><option value="circle">Circle</option></select>
+                </div>
+                <label class="check"><input type="checkbox" id="logoHideDots" checked /> <span>Hide the modules behind the logo</span></label>
+              </div>
+            </div>
+
+            <div class="field">
+              <span class="label">Background image</span>
+              <div class="dropzone" id="bgImageDrop" tabindex="0" role="button" aria-label="Upload a background image">
+                <input type="file" id="bgImageInput" accept="image/png,image/jpeg,image/svg+xml,image/webp" hidden />
+                <div class="dz-preview" id="bgImagePreview" hidden></div>
+                <div class="dz-inner">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                  <p><strong>Drop a background</strong> or click to browse</p>
+                  <small>The QR background becomes transparent so the image shows through</small>
+                </div>
+              </div>
+              <button class="key key--quiet key--block" id="bgImageRemove" type="button" hidden>Remove the background</button>
+              <div class="subfields" id="bgImageFields" hidden>
+                <div class="field">
+                  <label class="label" for="bgImageOpacity">Opacity <output id="bgImageOpacityOut">35%</output></label>
+                  <input type="range" id="bgImageOpacity" min="5" max="100" step="1" value="35" />
+                </div>
+                <div class="field">
+                  <label class="label" for="bgImageFit">Fit</label>
+                  <select id="bgImageFit"><option value="cover">Cover, cropping the edges</option><option value="contain">Contain, keeping the whole image</option><option value="stretch">Stretch to fill</option></select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FRAME -->
+          <div class="tabpane" role="tabpanel" id="panel-frame" aria-labelledby="tab-frame" data-pane="frame">
+            <div class="field">
+              <span class="label">Frame template</span>
+              <div class="frame-grid" id="frameTemplateGrid"></div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="frameFoot">Caption below</label>
+              <input type="text" id="frameFoot" placeholder="Scan me!" maxlength="60" />
+              <div class="grid-2">
+                <div class="field">
+                  <label class="label" for="frameFootSize">Caption size <output id="frameFootSizeOut">34</output></label>
+                  <input type="range" id="frameFootSize" min="12" max="56" step="1" value="34" />
+                </div>
+                <div class="field">
+                  <label class="label" for="frameFont">Font family</label>
+                  <select id="frameFont">
+                    <option value="system">System sans</option>
+                    <option value="Arial, Helvetica, sans-serif">Arial</option>
+                    <option value="Georgia, 'Times New Roman', serif">Georgia</option>
+                    <option value="'Courier New', Courier, monospace">Mono</option>
+                    <option value="'Trebuchet MS', sans-serif">Trebuchet</option>
+                    <option value="Verdana, Geneva, sans-serif">Verdana</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label" for="frameHead">Caption above</label>
+              <input type="text" id="frameHead" placeholder="Scan me!" maxlength="60" />
+              <div class="grid-2">
+                <div class="field">
+                  <label class="label" for="frameHeadSize">Caption size <output id="frameHeadSizeOut">34</output></label>
+                  <input type="range" id="frameHeadSize" min="12" max="56" step="1" value="34" />
+                </div>
+                <div class="field">
+                  <label class="label" for="frameRadius">Corner radius <output id="frameRadiusOut">16</output></label>
+                  <input type="range" id="frameRadius" min="0" max="80" step="1" value="16" />
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <span class="label">Colours</span>
+              <div class="grid-2">
+                <div class="field">
+                  <label class="label" for="frameBgColor">Frame fill</label>
+                  <input type="color" id="frameBgColor" value="#0f172a" />
+                </div>
+                <div class="field">
+                  <label class="label" for="frameColor">Accent</label>
+                  <input type="color" id="frameColor" value="#0f172a" />
+                </div>
+              </div>
+              <label class="check"><input type="checkbox" id="frameBgTransparent" /> <span>Transparent frame fill</span></label>
+            </div>
+          </div>
+
+          <!-- EXPORT -->
+          <div class="tabpane" role="tabpanel" id="panel-export" aria-labelledby="tab-export" data-pane="export">
+            <div class="field">
+              <span class="label">File format</span>
+              <div class="chip-row" id="formatRow">
+                <button class="chip is-active" data-format="png" type="button">PNG</button>
+                <button class="chip" data-format="svg" type="button">SVG</button>
+                <button class="chip" data-format="jpeg" type="button">JPG</button>
+                <button class="chip" data-format="webp" type="button">WEBP</button>
+              </div>
+            </div>
+            <div class="field" id="qualityField">
+              <label class="label" for="qualityInput">Quality <output id="qualityOut">92%</output></label>
+              <input type="range" id="qualityInput" min="30" max="100" step="1" value="92" />
+            </div>
+            <div class="field">
+              <span class="label">Export scale</span>
+              <div class="chip-row" id="scaleRow">
+                <button class="chip" data-scale="1" type="button">1×</button>
+                <button class="chip is-active" data-scale="2" type="button">2×</button>
+                <button class="chip" data-scale="3" type="button">3×</button>
+                <button class="chip" data-scale="4" type="button">4×</button>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label" for="fileName">File name</label>
+              <input type="text" id="fileName" value="qrcode" spellcheck="false" />
+            </div>
+            <div class="field">
+              <span class="label">Actions</span>
+              <div class="btn-grid">
+                <button class="key key--primary" id="btnDownload" type="button">Download</button>
+                <button class="key" id="btnCopyImage" type="button">Copy the image</button>
+                <button class="key" id="btnCopyPayload" type="button">Copy the payload</button>
+                <button class="key" id="btnShare" type="button">Share a link</button>
+                <button class="key" id="btnPrint" type="button">Print</button>
+                <button class="key" id="btnSave" type="button">Save to history</button>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label" for="payloadBox">Generated payload</label>
+              <textarea id="payloadBox" rows="4" readonly spellcheck="false"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---------- OUTPUT ---------- -->
+      <div class="output">
+        <div class="output-head">
+          <h2 class="output-title">Preview</h2>
+          <div class="output-actions">
+            <button class="link-btn" id="btnRandom" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.2" fill="currentColor"/></svg>
+              Randomise
+            </button>
+            <button class="link-btn" id="btnCopyLink" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1"/></svg>
+              Copy a design link
+            </button>
+          </div>
+        </div>
+
+        <div class="plate-frame">
+          <div class="plate" id="plate">
+            <div class="qr-holder" id="qrHolder"></div>
+          </div>
+          <div class="plate-strip">
+            <p class="plate-caption" id="plateCaption"></p>
+          </div>
+        </div>
+
+        <details class="raw">
+          <summary>What was generated<span class="summary-note" id="specSummary"></span></summary>
+          <table class="spec">
+            <tbody id="specBody"></tbody>
+          </table>
+        </details>
+
+        <p class="notice" id="scanWarning" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" focusable="false" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+          <span id="scanWarningText"></span>
+        </p>
+
+        <details class="raw">
+          <summary>Raw payload</summary>
+          <pre id="rawPayload"></pre>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= BULK ================= -->
+  <section class="view" id="view-bulk">
+    <div class="workbench workbench--single">
+      <div class="surface">
+        <div class="rail-body">
+          <h2 class="output-title">Bulk QR generation</h2>
+          <p class="muted">Turn a CSV into a ZIP of styled QR codes. The first column holds the payload; extra columns can be mapped to a contact, event or Wi-Fi payload.</p>
+
+          <div class="step">
+            <div class="step-head"><span class="step-num">01</span><span class="step-title">Upload a CSV</span></div>
+            <div class="dropzone" id="csvDrop" tabindex="0" role="button" aria-label="Upload a CSV file">
+              <input type="file" id="csvInput" accept=".csv,text/csv" hidden />
+              <div class="dz-inner">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h6"/></svg>
+                <p><strong>Drop a .csv file</strong> or click to browse</p>
+                <small>For example a first row of name, email and phone</small>
+              </div>
+            </div>
+            <button class="key key--quiet key--block" id="csvSample" type="button">Load a sample CSV</button>
+          </div>
+
+          <div class="step" id="bulkConfig" hidden>
+            <div class="step-head"><span class="step-num">02</span><span class="step-title">Payload template</span></div>
+            <div class="grid-2">
+              <div class="field">
+                <label class="label" for="bulkType">QR code type</label>
+                <select id="bulkType"></select>
+              </div>
+              <div class="field">
+                <label class="label" for="bulkUseDesign">Design</label>
+                <select id="bulkUseDesign"><option value="yes">Reuse the generator style</option><option value="no">Plain black on white</option></select>
+              </div>
+            </div>
+            <span class="label">Column mapping</span>
+            <div id="bulkMapping" class="mapping"></div>
+          </div>
+
+          <div class="step" id="bulkTableField" hidden>
+            <div class="step-head"><span class="step-num">03</span><span class="step-title">Preview</span></div>
+            <div class="table-wrap"><table class="table" id="bulkTable"></table></div>
+          </div>
+
+          <div class="btn-grid" id="bulkActions" hidden>
+            <button class="key key--primary" id="btnBulkGenerate" type="button">Generate the ZIP</button>
+            <button class="key" id="btnBulkCancel" type="button">Clear</button>
+          </div>
+          <div class="progress" id="bulkProgress" hidden><div class="bar"><div id="bulkBar"></div></div><span id="bulkStatus"></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SCAN ================= -->
+  <section class="view" id="view-scan">
+    <div class="workbench workbench--single">
+      <div class="surface">
+        <div class="rail-body">
+          <h2 class="output-title">Read a QR code</h2>
+          <div class="workbench workbench--split" style="margin-top:var(--space-lg)">
+            <div class="field">
+              <span class="label">Upload an image</span>
+              <div class="dropzone" id="scanDrop" tabindex="0" role="button" aria-label="Upload an image with a QR code">
+                <input type="file" id="scanInput" accept="image/*" hidden />
+                <div class="dz-inner">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M3 12h18"/></svg>
+                  <p><strong>Choose an image</strong> with a QR code</p>
+                  <small>PNG, JPG, WEBP or SVG</small>
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <span class="label">Use the camera</span>
+              <div id="cameraReader" class="camera-box"></div>
+              <div class="btn-row">
+                <button class="key" id="btnCamStart" type="button">Start the camera</button>
+                <button class="key" id="btnCamStop" type="button" disabled>Stop</button>
+              </div>
+              <small class="muted">The camera needs HTTPS or localhost.</small>
+            </div>
+          </div>
+          <div class="field" style="margin-top:var(--space-lg)">
+            <span class="label">Result</span>
+            <div class="scan-result" id="scanResult"><p class="muted">Nothing scanned yet.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= HISTORY ================= -->
+  <section class="view" id="view-history">
+    <div class="workbench workbench--single">
+      <div class="surface">
+        <div class="rail-body">
+          <div class="output-head">
+            <h2 class="output-title">Saved QR codes</h2>
+            <button class="key key--quiet" id="btnClearHistory" type="button">Clear all</button>
+          </div>
+          <div class="history-grid" id="historyGrid"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="sitefoot">
+  <p>QRForge runs 100% in your browser. Nothing you type is uploaded anywhere.</p>
+</footer>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<div class="modal" id="modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head"><h3 id="modalTitle">API</h3><button class="icon-btn" id="modalClose" type="button" aria-label="Close">✕</button></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script src="assets/vendor/qr-code-styling.umd.js"></script>
+<script src="assets/vendor/jsQR.js"></script>
+<script src="assets/vendor/jszip.min.js"></script>
+<script src="assets/vendor/html5-qrcode.min.js"></script>
+<script src="assets/js/utils.js"></script>
+<script src="assets/js/types.js"></script>
+<script src="assets/js/presets.js"></script>
+<script src="assets/js/frames.js"></script>
+<script src="assets/js/render.js"></script>
+<script src="assets/js/history.js"></script>
+<script src="assets/js/app.js"></script>
+<script src="assets/js/bulk.js"></script>
+<script src="assets/js/scanner.js"></script>
+</body>
+</html>
