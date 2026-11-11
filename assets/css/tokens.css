@@ -1,5 +1,6 @@
-/* Hallmark · Cobalt tokens plus the shared scale.
-   The light block is the theme as dealt; the two dark blocks re-derive it. */
+/* QRForge · the token layer.
+   Every colour, size, duration and radius the interface uses.
+   The light block is the base; the dark blocks re-derive it. */
 :root {
   color-scheme: light dark;
 

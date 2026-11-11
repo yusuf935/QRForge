@@ -1,12 +1,9 @@
 # dependencies
 node_modules/
 
-# Hallmark's build output: screenshots, the before/after record, the compare page
-.hallmark/shots/
-.hallmark/before/
-.hallmark/before.json
-.hallmark/before.txt
-.hallmark/compare.html
+# local tooling and design records, not part of the project
+.opencode/skills/hallmark/
+.hallmark/
 
 # logs and editor noise
 *.log

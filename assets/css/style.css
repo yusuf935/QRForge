@@ -1,14 +1,6 @@
-/* Hallmark · shape: app screen · genre: modern-minimal · theme: Cobalt (deal 1/3, seed 8ed21982) · redesign: full
- * nav: top bar, one row of text links · signature: the mark on a graphite plate, with its payload set below in mono
- * states: default, hover, focus, active, disabled, loading, error, success · axes: light/grotesk-sans/cool
- * posture: restrained · contrast: pass (both modes checked numerically) · modes: light+dark · v2.0.0 */
-/* Hallmark · pre-emit critique: P4 H4 E3 S4 R5 V5 · weakest: E, the type picker was a grid of identical icon tiles
- * and the panel had three levels of nesting; the picker is now a tray of keys and every surface sits one rung down. */
-/* Hallmark · dropped #generator · the route is now #/generator and carries the view and the open panel */
-/* Hallmark · dropped stage, stats, previewMeta, bg1 · the preview is a graphite plate and a ruled spec table */
-/* Hallmark · dropped frameEnabled, frameWidth, frameHeadColor, frameFootColor, frameFields, frameStyleRow, frameWidthOut · the frame templates replaced the style swatches and the separate caption colours */
-/* Hallmark · answered F3 · balance stays on the section titles, where it tidies a wrapped pair, and not on the display head */
-/* Hallmark · waived 80 · the frame templates are the illustrations the user asked for, and each one carries the code it frames */
+/* QRForge · the workbench
+   Tokens live in tokens.css, the shared resets in base.css.
+   Every colour, size and duration below comes from a token. */
 @import url("./fonts.css");
 @import url("./tokens.css");
 @import url("./base.css");

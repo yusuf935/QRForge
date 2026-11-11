@@ -1,5 +1,6 @@
-/* Hallmark · Cobalt · Familjen Grotesk, IBM Plex Sans, JetBrains Mono
-   Self-hosted, latin subset, so the tool works with no network. */
+/* QRForge · the three typefaces, self-hosted.
+   Familjen Grotesk, IBM Plex Sans and JetBrains Mono, latin subset,
+   so the interface renders identically with no network. */
 
 @font-face { font-family: 'Familjen Grotesk'; font-style: normal; font-weight: 500; font-display: swap; src: url('../fonts/FamiljenGrotesk-500.woff2') format('woff2'); }
 @font-face { font-family: 'Familjen Grotesk'; font-style: normal; font-weight: 600; font-display: swap; src: url('../fonts/FamiljenGrotesk-600.woff2') format('woff2'); }

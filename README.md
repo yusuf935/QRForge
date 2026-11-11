@@ -6,17 +6,17 @@ bulk CSV → ZIP generation, a built-in scanner and shareable design links.
 
 Nothing you type ever leaves the browser.
 
-![Hallmark](https://img.shields.io/badge/design-Hallmark%20%C2%B7%20Cobalt-2f56d8) ![No backend](https://img.shields.io/badge/backend-none-22c55e) ![License](https://img.shields.io/badge/license-MIT-6366f1)
+![No backend](https://img.shields.io/badge/backend-none-22c55e) ![License](https://img.shields.io/badge/license-GPL--3.0-6366f1) ![Dependencies](https://img.shields.io/badge/dependencies-zero-22c55e)
 
 ---
 
 ## Quick start
 
 ### XAMPP / Apache
-Copy this folder into `C:\xampp\htdocs\` and open:
+Copy this folder into `C:\xampp\htdocs\` as `QRForge` and open:
 
 ```
-http://localhost/todo/
+http://localhost/QRForge/
 ```
 
 ### Any static server
@@ -101,20 +101,11 @@ and delivered as a single **ZIP**.
 
 ---
 
-## Design system: Hallmark · Cobalt
+## Design system
 
-The interface was redesigned with the [Hallmark](https://github.com/Nutlope/hallmark)
-skill, an anti-AI-slop design skill. The skill is vendored into
-`.opencode/skills/hallmark/` so the build is reproducible, and its linter runs as the
-project's own design gate.
-
-**Before.** A purple-to-cyan gradient wordmark, aurora blobs behind glass panels, a
-uniform grid of sixteen icon-over-label tiles, uppercase tracked labels, emoji in
-buttons, and colour literals scattered through the stylesheet. The Hallmark linter
-counted **55 Floor failures and 77 Reflex findings**.
-
-**After.** The *Cobalt* theme was dealt from the Hallmark catalogue and the whole
-system replaced around it:
+The interface is built on one system, defined entirely by tokens in
+`assets/css/tokens.css`. Every colour, size and duration comes from there, so
+there are no colour literals in the component stylesheet.
 
 | | |
 |---|---|
@@ -127,29 +118,9 @@ system replaced around it:
 | **Signature** | the mark on **its own ground**, with the payload set below it in mono on a graphite strip |
 | **Dark mode** | a second, re-derived rendering of the same tokens, not an inversion |
 
-Every colour, size and duration now comes from a token in `assets/css/tokens.css`.
-Dark mode was re-derived by recipe and every text pairing was checked numerically in
-both modes (the worst body pairing is 4.86:1 against a 4.5:1 target).
-
-### The linter
-
-```bash
-node .opencode/skills/hallmark/scripts/sloplint.mjs index.html assets/css/style.css \
-  --genre modern-minimal --scope app --render --kept --url http://localhost:8080/
-```
-
-The render tier needs Node 18+, `puppeteer-core` and Chrome:
-
-```bash
-npm i puppeteer-core
-# Windows
-$env:CHROME_PATH = "C:\Program Files\Google\Chrome\Application\chrome.exe"
-```
-
-Current state: **0 FAIL, 0 REFLEX, 0 WARN**, with the redesign's own record
-(`.hallmark/before.json`) confirming that all 49 fields, 4 script hooks, 4 headings
-and both figures survived. `.hallmark/compare.html` puts the before and after
-screenshots side by side.
+Every text pairing was checked numerically in both modes (the worst body pairing is
+4.86:1 against a 4.5:1 target). The three families are self-hosted in `assets/fonts/`,
+so the interface renders identically with no network.
 
 ### The end-to-end test
 
@@ -174,17 +145,15 @@ stays clean.
 ## Project layout
 
 ```
-todo/
+QRForge/
 ├── index.html              markup for every view
 ├── dev-server.js           optional zero-dependency static server
-├── tests/e2e.js            22-check end-to-end suite (needs puppeteer-core)
-├── .hallmark/              the redesign's records, log and compare page
-├── .opencode/skills/hallmark/   the vendored Hallmark design skill
+├── tests/e2e.js            41-check end-to-end suite (needs puppeteer-core)
 └── assets/
     ├── css/
     │   ├── fonts.css       @font-face for the three self-hosted families
     │   ├── tokens.css      every colour, size and duration, light and dark
-    │   ├── base.css        the rules the design floor already decided
+    │   ├── base.css        the shared resets and browser surfaces
     │   └── style.css       the app itself
     ├── fonts/              seven woff2 files, latin subset, no network needed
     ├── js/
@@ -238,5 +207,8 @@ secure context (`https://` or `localhost`); everything else works from `file://`
 
 GNU General Public License v3.0 — see [LICENSE](LICENSE).
 
-The vendored [Hallmark](.opencode/skills/hallmark) design skill under
-`.opencode/skills/hallmark/` is MIT licensed and carries its own licence.
+The pinned libraries under `assets/vendor/` carry their own licences: `qr-code-styling`
+and `jsQR` are MIT, `JSZip` is dual-licensed MIT/GPL, `html5-qrcode` is Apache-2.0.
+The three typefaces in `assets/fonts/` are licensed for use and redistribution: IBM Plex
+Sans and JetBrains Mono under the SIL Open Font License, Familjen Grotesk under the
+SIL Open Font License.
